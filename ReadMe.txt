@@ -1,4 +1,8 @@
-              MICRO-MENU V2
+MSP430 capability.
+added few #defines.
+ub4raf.
+
+          MICRO-MENU V2
               https://github.com/abcminiuser/micromenu-v2
 
           (C) Dean Camera, 2012
