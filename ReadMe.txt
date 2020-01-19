@@ -1,6 +1,8 @@
-MSP430 capability.
-added few #defines.
-ub4raf.
+MSP430 capability fixed.
+added few #defines
+added char and string types (password, names etc)
+https://github.com/ub4raf/micromenu-v2
+73 ub4raf
 
           MICRO-MENU V2
               https://github.com/abcminiuser/micromenu-v2
