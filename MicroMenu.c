@@ -1,4 +1,9 @@
 /**
+MSP430 capability fixed.
+added few #defines
+added char and string types (password, names etc)
+https://github.com/ub4raf/micromenu-v2
+73 ub4raf
               MICRO-MENU V2
               https://github.com/abcminiuser/micromenu-v2
 
@@ -17,8 +22,17 @@
                                       */
 
 #include "MicroMenu.h"
+#include "stdio.h"
+#include "string.h"
 
 #define QUESTION "?"
+
+#if !( defined (__MIKROC_PRO_FOR_ARM__) || defined(__MIKROC_PRO_FOR_AVR__) || defined(__MIKROC_PRO_FOR_PIC__))
+/* light version of "printf"-s are used in MikroC compiler. In other compilers use full version: */
+//  change "printf" options in compiler settings
+#define sprinti sprintf
+#define sprintl sprintf
+#endif
 
 /** This is used when an invalid menu handle is required in
  *  a \ref MENU_ITEM() definition, i.e. to indicate that a
@@ -44,6 +58,10 @@ static void (*MenuShowBit)(const Menu_Item_t *MenuItem) = NULL;
 static void (*MenuShowSInt)(const Menu_Item_t *MenuItem) = NULL;
 static void (*MenuShowUInt)(const Menu_Item_t *MenuItem) = NULL;
 static void (*MenuShowFloat)(const Menu_Item_t *MenuItem) = NULL;
+static void (*MenuShowChar)(const Menu_Item_t *MenuItem) = NULL;
+#ifdef USE_STRING_TYPE
+static void (*MenuShowString)(const Menu_Item_t *MenuItem) = NULL;
+#endif
 
 static void (*MenuEditBit)(const Menu_Item_t *MenuItem, signed int Dir) = NULL;
 static void (*MenuEditInt)(const Menu_Item_t *MenuItem, signed int Dir) = NULL;
@@ -80,11 +98,12 @@ void Menu_Navigate(const Menu_Item_t *NewMenu)
 
     if(SelectCallback)
         SelectCallback();
-
+#ifdef MICRO_MENU_V3
     RefreshCallback = MENU_ITEM_READ_POINTER(&CurrentMenuItem->RefreshCallback);
 
     if(RefreshCallback)
         RefreshCallback(NewMenu);
+#endif
 }
 
 void Menu_SetGenericWriteCallback(void (*WriteFunc)(const char *Text))
@@ -117,7 +136,20 @@ void Menu_SetGenericShowBit(void (*ShowFunc)(const Menu_Item_t *MenuItem))
     MenuShowBit = ShowFunc;
     Menu_Navigate(CurrentMenuItem);
 }
-
+#ifdef USE_CHAR_TYPE
+void Menu_SetGenericShowChar(void (*ShowFunc)(const Menu_Item_t *MenuItem))
+{
+    MenuShowChar = ShowFunc;
+    Menu_Navigate(CurrentMenuItem);
+}
+#endif
+#ifdef USE_STRING_TYPE
+void Menu_SetGenericShowString(void (*ShowFunc)(const Menu_Item_t *MenuItem))
+{
+    MenuShowString = ShowFunc;
+    Menu_Navigate(CurrentMenuItem);
+}
+#endif
 void Menu_SetGenericShowFloat(void (*ShowFunc)(const Menu_Item_t *MenuItem))
 {
     MenuShowFloat = ShowFunc;
@@ -165,11 +197,13 @@ void Menu_SaveEditedCurrentItem(void)
     void (*SaveEditCallback)(const Menu_Item_t *NewMenu);
     if((CurrentMenuItem == &NULL_MENU) || (CurrentMenuItem == NULL))
         return;
+#ifdef MICRO_MENU_V3
 
     SaveEditCallback = MENU_ITEM_READ_POINTER(&CurrentMenuItem->SaveEditCallback);
 
     if(SaveEditCallback)
         SaveEditCallback(CurrentMenuItem);
+#endif
 }
 
 void Menu_RestoreEditedCurrentItem(void)
@@ -177,11 +211,13 @@ void Menu_RestoreEditedCurrentItem(void)
     void (*RestoreEditCallback)(const Menu_Item_t *NewMenu);
     if((CurrentMenuItem == &NULL_MENU) || (CurrentMenuItem == NULL))
         return;
+#ifdef MICRO_MENU_V3
 
     RestoreEditCallback = MENU_ITEM_READ_POINTER(&CurrentMenuItem->RestoreEditCallback);
 
     if(RestoreEditCallback)
         RestoreEditCallback(CurrentMenuItem);
+#endif
 }
 
 #ifdef MICRO_MENU_V3
@@ -203,6 +239,18 @@ void Menu_Refresh(const Menu_Item_t *MenuItem)
                 if(MenuShowUInt)
                     MenuShowUInt(MenuItem);
                 break;
+#ifdef USE_CHAR_TYPE  //
+            case CHAR_TYPE:
+                if(MenuShowChar)
+                    MenuShowChar(MenuItem);
+                break;
+#endif
+#ifdef USE_STRING_TYPE
+            case STRING_TYPE:
+                if(MenuShowString)
+                    MenuShowString(MenuItem);
+                break;
+#endif
             case SIGNED_TYPE:
                 if(MenuShowSInt)
                     MenuShowSInt(MenuItem);
@@ -375,6 +423,11 @@ void Menu_Edit(const Menu_Item_t *MenuItem, signed int Dir)
             case UNSIGNED_TYPE:
                 Generic_EditInt(MenuItem, Dir);
                 break;
+#ifdef USE_CHAR_TYPE  //
+            case CHAR_TYPE:
+                Generic_EditInt(MenuItem, Dir);
+                break;
+#endif
             case SIGNED_TYPE:
                 Generic_EditInt(MenuItem, Dir);
                 break;
@@ -385,6 +438,7 @@ void Menu_Edit(const Menu_Item_t *MenuItem, signed int Dir)
 #endif
         }
     }
+    Menu_Refresh(MENU_CURRENT);
 }
 #endif
 
@@ -424,7 +478,7 @@ char *Menu_GetText(char *dest, const Menu_Item_t *MenuItem)
 }
 
 #ifdef USE_DATA
-#if 1
+#ifndef FORMAT_USE_DATA
 char *Menu_DataStr(char *dest, const Menu_Item_t *MenuItem)
 {
     int i;
@@ -584,6 +638,17 @@ char *Menu_DataStr(char *dest, MENU_ITEM_STORAGE char *formatStr, const Menu_Ite
                     break;
             }
             break;
+#ifdef USE_CHAR_TYPE
+        case CHAR_TYPE:
+            dest[0]=(char)(*(char *)(MenuItem->DataItem->DataPtr));
+            dest[1]='\0';
+        break;
+#endif
+#ifdef USE_STRING_TYPE
+        case STRING_TYPE:
+            strcpy_const(dest,(char *)(MenuItem->DataItem->DataPtr));
+        break;
+#endif
 #ifdef USE_FLOAT_TYPE
         case FLOAT_TYPE:
             switch(MenuItem->DataItem->Size) {

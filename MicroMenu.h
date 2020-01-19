@@ -1,4 +1,9 @@
 /**
+MSP430 capability fixed.
+added few #defines
+added char and string types (password, names etc)
+https://github.com/ub4raf/micromenu-v2
+73 ub4raf
               MICRO-MENU V2
               https://github.com/abcminiuser/micromenu-v2
 
@@ -35,6 +40,9 @@ typedef enum MENU_DATA_TYPE_t {
 #endif                //
 #ifdef USE_CHAR_TYPE  //
     CHAR_TYPE,        // for char
+#endif
+#ifdef USE_STRING_TYPE  //
+    STRING_TYPE,        // for char
 #endif
 } MENU_DATA_TYPE;
 
@@ -89,7 +97,7 @@ typedef const struct Menu_Item {
     void (*EditCallback)(const struct Menu_Item *, signed int); /**< Pointer to the optional menu-specific edit data callback of this menu item */
     void (*SaveEditCallback)(const struct Menu_Item *);         /**< Pointer to the optional menu-specific edit data callback of this menu item */
     void (*RestoreEditCallback)(const struct Menu_Item *);      /**< Pointer to the optional menu-specific edit data callback of this menu item */
-#if defined(__MIKROC_PRO_FOR_ARM__) || defined(__MIKROC_PRO_FOR_AVR__) || defined(__MIKROC_PRO_FOR_PIC__)
+#if defined(__MIKROC_PRO_FOR_ARM__) || defined(__MIKROC_PRO_FOR_AVR__) || defined(__MIKROC_PRO_FOR_PIC__) || defined(__MSP430__)
     const char *       Text;                                    /**< Menu item text to pass to the menu display callback function */
 #else /**/
     char Text[]; /**< Menu item text to pass to the menu display callback function */
@@ -210,6 +218,12 @@ void Menu_SetGenericShowSInt(void (*ShowFunc)(const Menu_Item_t *MenuItem));
 void Menu_SetGenericShowUInt(void (*ShowFunc)(const Menu_Item_t *MenuItem));
 void Menu_SetGenericShowBit(void (*ShowFunc)(const Menu_Item_t *MenuItem));
 void Menu_SetGenericShowFloat(void (*ShowFunc)(const Menu_Item_t *MenuItem));
+#ifdef USE_CHAR_TYPE
+void Menu_SetGenericShowChar(void (*ShowFunc)(const Menu_Item_t *MenuItem));
+#endif
+#ifdef USE_STRING_TYPE
+void Menu_SetGenericShowString(void (*ShowFunc)(const Menu_Item_t *MenuItem));
+#endif
 
 // Optional. Generic_EditBit, Generic_EditInt, Generic_EditFload are used by
 // default.
@@ -235,6 +249,11 @@ void Menu_RestoreEditedCurrentItem(void);
 char *strcpy_const(char *dest, MENU_ITEM_STORAGE char *src);
 char *strncpy_const(char *dest, MENU_ITEM_STORAGE char *src, size_t n);
 char *Menu_GetText(char *dest, const Menu_Item_t *MenuItem);
+#ifndef FORMAT_USE_DATA
 char *Menu_DataStr(char *dest, const Menu_Item_t *MenuItem);
+#else
+char *Menu_DataStr(char *dest, MENU_ITEM_STORAGE char *formatStr, const Menu_Item_t *MenuItem);
+#endif
+
 
 #endif

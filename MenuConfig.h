@@ -1,4 +1,10 @@
 /**
+MSP430 capability fixed.
+added few #defines
+added char and string types (password, names etc)
+https://github.com/ub4raf/micromenu-v2
+73 ub4raf
+
               MICRO-MENU V2
               https://github.com/abcminiuser/micromenu-v2
 
@@ -19,13 +25,14 @@
 #ifndef _MICRO_MENU_CONFIG_H_
 #define _MICRO_MENU_CONFIG_H_
 
-#if defined(__MIKROC_PRO_FOR_ARM__) || defined(__MIKROC_PRO_FOR_AVR__) || defined(__MIKROC_PRO_FOR_PIC__) // || defined(__arm__)
+#if defined(__MIKROC_PRO_FOR_ARM__) || defined(__MIKROC_PRO_FOR_AVR__) || defined(__MIKROC_PRO_FOR_PIC__) || defined(__MSP430__)//|| defined(__arm__)
 #define MICRO_MENU_V3 // Comment out this line if only V2 features are needed.
 #endif
 
 #ifdef MICRO_MENU_V3
 #define USE_DATA
 #ifdef USE_DATA
+#define FORMAT_USE_DATA
 #define USE_DATA_RANGE
 #ifdef USE_DATA_RANGE
 #define JUMP_MIN_TO_MAX_TO_MIN // Comment out this line to prevent the jumps from maxValue to MinValue and backward when editing data.
@@ -33,6 +40,7 @@
 
 #define USE_FLOAT_TYPE // Comment out this line if you do not plan to use float, double and long double type variables.
 #define USE_CHAR_TYPE  // Comment out this line if you do not plan to use char type variables.
+#define USE_STRING_TYPE
 #endif
 #endif
 
@@ -54,7 +62,7 @@
 #elif defined(__arm__) // && defined(__GNUC__)
 #define MENU_ITEM_STORAGE const
 #else
-#error Use your own definition.
+#define MENU_ITEM_STORAGE const
 #endif
 
 /** Configuration for the macro or function required to read out a pointer from
@@ -69,7 +77,7 @@
 #elif defined(__arm__) // && defined(__GNUC__)
 #define MENU_ITEM_READ_POINTER(Addr) *(Addr)
 #else
-#error Use your own definition.
+#define MENU_ITEM_READ_POINTER(Addr) *(Addr)
 #endif
 
 #endif
